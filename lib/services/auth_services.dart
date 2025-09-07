@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:foodgo/models/user_model.dart';
 
 class AuthServices {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -48,14 +49,30 @@ class AuthServices {
     }
   }
 
-
-
-  Future<void> signOut()async{
+  Future<void> signOut() async {
     await _auth.signOut();
   }
 
+  Future<UserModel?> getUserProfile() async {
+    try {
+      User? user = await _auth.currentUser;
 
+      if (user != null) {
+        DocumentSnapshot doc = await _firestore
+            .collection("users")
+            .doc(user.uid)
+            .get();
 
+        if (doc.exists) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
+          return UserModel.fromJson(data);
+        }
 
+        return null;
+      }
+    } catch (e) {
+      throw Exception("Error fetching profile data ${e.toString()}");
+    }
+  }
 }

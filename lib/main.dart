@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:foodgo/view/home_screen.dart';
 import 'package:foodgo/view/signup_screens.dart';
+import 'package:foodgo/view/splash_screen.dart';
 import 'package:get/get.dart';
 
 import 'firebase_options.dart';
@@ -23,7 +25,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: SignupScreens(),
+      home: const HomeScreen(),
     );
   }
 }

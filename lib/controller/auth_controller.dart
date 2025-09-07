@@ -1,11 +1,13 @@
 import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:foodgo/models/user_model.dart';
 import 'package:foodgo/services/auth_services.dart';
 import 'package:foodgo/view/home_screen.dart';
+import 'package:foodgo/view/profile_screen.dart';
+import 'package:foodgo/view/splash_screen.dart';
 import 'package:get/get.dart';
 
 class AuthController extends GetxController {
@@ -15,6 +17,11 @@ class AuthController extends GetxController {
 
   // Loading State
   var isLoading = false.obs;
+
+  var textFieldEnable = false.obs;
+
+  var isProfileLoading = false.obs;
+  Rxn<UserModel> currentUser = Rxn<UserModel>();
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -44,7 +51,7 @@ class AuthController extends GetxController {
 
       log("${user?.email}");
 
-      Get.offAll(HomeScreen(), transition: Transition.noTransition);
+      Get.offAll(ProfileScreen(), transition: Transition.noTransition);
 
       isLoading.value = false;
     } catch (abir) {
@@ -77,13 +84,31 @@ class AuthController extends GetxController {
     } catch (exception) {}
   }
 
+  Future<void> fetchUserProfile() async {
+    try {
+      isProfileLoading.value = true;
+
+      UserModel? userModel = await _authServices.getUserProfile();
+
+      if (userModel != null) {
+        currentUser.value = userModel;
+        isProfileLoading.value = false;
+      }
+    } catch (e) {
+      isProfileLoading.value = false;
+      throw Exception("Profile data not found");
+    }
+  }
+
+  Future signOut() async {
+    await _authServices.signOut();
+    Get.snackbar("Success", "User Sign out Succcessfully");
+    Get.offAll(SplashScreen(), transition: Transition.noTransition);
+  }
+
   @override
   void onInit() {
     super.onInit();
-    if (firebaseAuth.currentUser != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_){
-        Get.offAll(HomeScreen(), transition: Transition.noTransition);
-      });
-    }
+    fetchUserProfile();
   }
 }
