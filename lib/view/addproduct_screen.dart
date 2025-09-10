@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foodgo/controller/product_controller.dart';
 import 'package:foodgo/models/product_model.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 import '../component/widget/custom_button.dart';
@@ -27,13 +28,13 @@ class AddproductScreen extends GetView<ProductController> {
           children: [
             SizedBox(height: 30),
 
+            _imagePickerSection(),
+
+            SizedBox(height: 30),
+
             _textField(
               "Enter your product name",
               controller.productnameController,
-            ),
-            _textField(
-              "Enter your product image url",
-              controller.productImageController,
             ),
 
             _textField(
@@ -41,10 +42,8 @@ class AddproductScreen extends GetView<ProductController> {
               controller.productpriceController,
             ),
             _textField(
-                "Enter your product description",
-                controller.productDescriptionController,
-
-
+              "Enter your product description",
+              controller.productDescriptionController,
             ),
 
             SizedBox(height: 30),
@@ -55,17 +54,7 @@ class AddproductScreen extends GetView<ProductController> {
               } else {
                 return CustomButton(
                   onTab: () {
-                    var uuid = Uuid();
-
-                    final newProduct = ProductModel(
-                      id: uuid.v4(),
-                      name: controller.productnameController.text,
-                      images: controller.productImageController.text,
-                      description: controller.productDescriptionController.text,
-                      price: controller.productpriceController.text,
-                    );
-
-                    controller.addProduct(newProduct);
+                    controller.addProduct();
                   },
                   text: "Create Product",
                   bgColor: Colors.red,
@@ -83,7 +72,6 @@ class AddproductScreen extends GetView<ProductController> {
     String hint,
     TextEditingController textEditingcontroller, {
     bool isPassword = false,
-
   }) {
     return Padding(
       padding: const EdgeInsets.all(6.0),
@@ -103,6 +91,63 @@ class AddproductScreen extends GetView<ProductController> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _imagePickerSection() {
+    return Padding(
+      padding: EdgeInsets.all(6.0),
+      child: Card(
+        color: Colors.white,
+        child: Column(
+          children: [
+            Container(
+              height: 200,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Obx(() {
+                if (controller.selectedImage.value != null) {
+                  return Container(
+                    height: 200,
+                    width: double.infinity,
+
+                    child: Image.file(
+                      controller.selectedImage.value!,
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                } else {
+                  return Center(child: Text("Please Upload Your Image"));
+                }
+              }),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      controller.pickerImage(ImageSource.camera);
+                    },
+                    child: Text("Camera"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      controller.pickerImage(ImageSource.gallery);
+                    },
+                    child: Text("Gallery"),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

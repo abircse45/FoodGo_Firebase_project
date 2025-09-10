@@ -79,7 +79,7 @@ class AuthController extends GetxController {
 
       log("${user?.email}");
 
-      Get.offAll(HomeScreen(), transition: Transition.noTransition);
+      Get.offAll(FoodgoHomePage(), transition: Transition.noTransition);
       isLoading.value = false;
     } catch (exception) {}
   }
