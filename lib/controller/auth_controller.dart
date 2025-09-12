@@ -51,7 +51,7 @@ class AuthController extends GetxController {
 
       log("${user?.email}");
 
-      Get.offAll(ProfileScreen(), transition: Transition.noTransition);
+      Get.offAll(FoodgoHomePage(), transition: Transition.noTransition);
 
       isLoading.value = false;
     } catch (abir) {

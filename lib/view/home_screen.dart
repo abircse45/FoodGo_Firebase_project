@@ -1,10 +1,16 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
 import 'package:flutter/material.dart';
+import 'package:foodgo/controller/banner_controller.dart';
 import 'package:foodgo/controller/product_controller.dart';
 import 'package:foodgo/models/product_model.dart';
 import 'package:foodgo/view/addproduct_screen.dart';
+import 'package:foodgo/view/createbanner_screen.dart';
+import 'package:foodgo/view/product_details.dart';
 import 'package:get/get.dart';
+
+import 'cart_screen.dart';
 
 class FoodgoHomePage extends StatefulWidget {
   @override
@@ -20,7 +26,7 @@ class _FoodgoHomePageState extends State<FoodgoHomePage> {
     SearchPage(),
     AddproductScreen(),
     FavoritePage(),
-    Container(),
+    CreatebannerScreen(),
   ];
 
   @override
@@ -57,7 +63,7 @@ class _FoodgoHomePageState extends State<FoodgoHomePage> {
             label: '',
           ),
           CurvedNavigationBarItem(
-            child: Icon(Icons.favorite, size: 24, color: Colors.white),
+            child: Icon(Icons.image, size: 24, color: Colors.white),
             label: '',
           ),
         ],
@@ -82,19 +88,19 @@ class _FoodgoHomePageState extends State<FoodgoHomePage> {
   }
 }
 
-
-
 class HomePage extends GetView<ProductController> {
-
   @override
   Widget build(BuildContext context) {
-    Get.lazyPut(()=> ProductController());
+    Get.lazyPut(() => ProductController());
+
+    BannerController bannerController = Get.put(BannerController());
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Obx((){
-        if(controller.isloading.value){
-          return Center(child: CircularProgressIndicator(),);
-        }else{
+      body: Obx(() {
+        if (controller.isloading.value) {
+          return Center(child: CircularProgressIndicator());
+        } else {
           return SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,6 +134,20 @@ class HomePage extends GetView<ProductController> {
                           ],
                         ),
                       ),
+                      GestureDetector(
+                        onTap: (){
+                          Get.to(CartScreen(),transition: Transition.noTransition);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.shopping_cart_outlined, color: Colors.black87),
+                        ),
+                      ),
+                      SizedBox(width: 20,),
                       CircleAvatar(
                         radius: 25,
                         backgroundColor: Colors.pink[100],
@@ -180,6 +200,67 @@ class HomePage extends GetView<ProductController> {
                   ),
                 ),
 
+                SizedBox(height: 25),
+
+                Obx(() {
+                  return CarouselSlider(
+                      options: CarouselOptions(
+                        height: 200,
+                        aspectRatio: 16/9,
+                        viewportFraction: 1,
+                        initialPage: 0,
+                        enableInfiniteScroll: true,
+                        reverse: false,
+                        autoPlay: true,
+                        autoPlayInterval: Duration(seconds: 3),
+                        autoPlayAnimationDuration: Duration(milliseconds: 800),
+                        autoPlayCurve: Curves.fastOutSlowIn,
+                        enlargeCenterPage: true,
+                        enlargeFactor: 0.3,
+                        scrollDirection: Axis.horizontal,
+                        onPageChanged: (index,_){
+                          bannerController.currentIndex.value = index;
+                        }
+                      ),
+                    items: bannerController.bannerList.map((data) {
+
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          height: 200,
+                          child: ClipRRect(
+
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              "${data.imageUrl}",
+                              width: double.infinity,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  );
+                }),
+
+
+                Obx((){
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(bannerController.bannerList.length, (index){
+                      return Container(
+                        width: 10,
+                        height: 10,
+                        margin: EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color:  bannerController.currentIndex.value == index   ? Colors.red : Colors.grey
+                        ),
+                      );
+                    }),
+                  );
+                }),
 
                 SizedBox(height: 25),
 
@@ -187,20 +268,31 @@ class HomePage extends GetView<ProductController> {
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: controller.product.isEmpty ? Center(
-                      child: Text("No Product Found",style: TextStyle(fontSize: 25,fontWeight: FontWeight.bold),),
-                    )  : GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 15,
-                        mainAxisSpacing: 15,
-                        childAspectRatio: 0.75,
-                      ),
-                      itemCount: controller.product.length,
-                      itemBuilder: (context, index) {
-                        return  FoodCard(productModel: controller.product[index]);
-                      },
-                    ),
+                    child: controller.product.isEmpty
+                        ? Center(
+                            child: Text(
+                              "No Product Found",
+                              style: TextStyle(
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        : GridView.builder(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 15,
+                                  mainAxisSpacing: 15,
+                                  childAspectRatio: 0.75,
+                                ),
+                            itemCount: controller.product.length,
+                            itemBuilder: (context, index) {
+                              return FoodCard(
+                                productModel: controller.product[index],
+                              );
+                            },
+                          ),
                   ),
                 ),
               ],
@@ -211,6 +303,7 @@ class HomePage extends GetView<ProductController> {
     );
   }
 }
+
 class FoodCard extends StatelessWidget {
   final ProductModel productModel;
 
@@ -220,7 +313,12 @@ class FoodCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_)=> ProductDetailPage(productModel: productModel)));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductDetailPage(productModel: productModel),
+          ),
+        );
       },
       child: Container(
         decoration: BoxDecoration(
@@ -251,15 +349,16 @@ class FoodCard extends StatelessWidget {
                   child: Container(
                     width: double.infinity,
                     height: 200,
-                    decoration: BoxDecoration(
-            
-                    ),
+                    decoration: BoxDecoration(),
 
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(15),
 
-                        child: Image.network("${productModel.images}",fit: BoxFit.fill,)),
-
+                      child: Image.network(
+                        "${productModel.images}",
+                        fit: BoxFit.fill,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -328,313 +427,8 @@ class FoodCard extends StatelessWidget {
     );
   }
 }
-class ProductDetailPage extends StatefulWidget {
-  final ProductModel productModel;
 
-  const ProductDetailPage({Key? key, required this.productModel}) : super(key: key);
 
-  @override
-  _ProductDetailPageState createState() => _ProductDetailPageState();
-}
-
-class _ProductDetailPageState extends State<ProductDetailPage> {
-  int quantity = 2;
-  double spiciness = 0.3;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.arrow_back, color: Colors.black87),
-                    ),
-                  ),
-                  Spacer(),
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(Icons.search, color: Colors.black87),
-                  ),
-                ],
-              ),
-            ),
-
-            // Product Image
-            Container(
-              height: 250,
-              width: double.infinity,
-              margin: EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Center(
-                child: Container(
-                  width: double.infinity,
-                  height: 250,
-
-                  child:ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-
-                      child: Image.network("${widget.productModel.images}",fit: BoxFit.cover,)),
-                ),
-              ),
-            ),
-
-            SizedBox(height: 30),
-
-            // Product Details
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${widget.productModel.name}',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-
-                    SizedBox(height: 10),
-
-                    Row(
-                      children: [
-
-                        Text(
-                          "Price : ${widget.productModel.price.toString()}",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(width: 15),
-
-                      ],
-                    ),
-
-                    SizedBox(height: 20),
-
-                    Text(
-                      '${widget.productModel.description}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[700],
-                        height: 1.5,
-                      ),
-                    ),
-
-                    SizedBox(height: 30),
-
-                    // Spicy Level
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Spicy',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              SizedBox(height: 15),
-                              Row(
-                                children: [
-                                  Text(
-                                    'Mild',
-                                    style: TextStyle(color: Colors.grey[600]),
-                                  ),
-                                  Expanded(
-                                    child: SliderTheme(
-                                      data: SliderTheme.of(context).copyWith(
-                                        activeTrackColor: Color(0xFFE53E3E),
-                                        inactiveTrackColor: Colors.grey[300],
-                                        thumbColor: Color(0xFFE53E3E),
-                                        overlayColor: Color(
-                                          0xFFE53E3E,
-                                        ).withOpacity(0.2),
-                                        thumbShape: RoundSliderThumbShape(
-                                          enabledThumbRadius: 8,
-                                        ),
-                                      ),
-                                      child: Slider(
-                                        value: spiciness,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            spiciness = value;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    'Hot',
-                                    style: TextStyle(color: Colors.grey[600]),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(width: 40),
-
-                        // Quantity
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Quantity',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            SizedBox(height: 15),
-                            Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    if (quantity > 1) {
-                                      setState(() {
-                                        quantity--;
-                                      });
-                                    }
-                                  },
-                                  child: Container(
-                                    width: 35,
-                                    height: 35,
-                                    decoration: BoxDecoration(
-                                      color: Color(0xFFE53E3E),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      Icons.remove,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 15),
-                                Text(
-                                  quantity.toString(),
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(width: 15),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      quantity++;
-                                    });
-                                  },
-                                  child: Container(
-                                    width: 35,
-                                    height: 35,
-                                    decoration: BoxDecoration(
-                                      color: Color(0xFFE53E3E),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      Icons.add,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                    Spacer(),
-
-                    // Price and Order Button
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 25,
-                            vertical: 15,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Color(0xFFE53E3E),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Text(
-                            'BDT ${(widget.productModel.price)}',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 15),
-                        Expanded(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 15),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[800],
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'ORDER NOW',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  letterSpacing: 1,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class SearchPage extends StatelessWidget {
   @override
