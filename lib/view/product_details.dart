@@ -9,14 +9,13 @@ class ProductDetailPage extends StatefulWidget {
   final ProductModel productModel;
 
   const ProductDetailPage({Key? key, required this.productModel})
-      : super(key: key);
+    : super(key: key);
 
   @override
   _ProductDetailPageState createState() => _ProductDetailPageState();
 }
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
-
   final CartController cartController = Get.put(CartController());
   int quantity = 1;
   double spiciness = 0.3;
@@ -45,17 +44,39 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ),
                   Spacer(),
-                  GestureDetector(
-                    onTap: (){
-                      Get.to(CartScreen(),transition: Transition.noTransition);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.shopping_cart_outlined, color: Colors.black87),
+
+                  Obx(
+                    () => Stack(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Get.to(()=> CartScreen());
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.shopping_cart_outlined,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+
+                        Positioned(
+
+                          right: 0,
+                          bottom: 0,
+                          top: 0,
+                          child: Text("${cartController.totalItems.value}",style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold
+                          ),),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -208,13 +229,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               children: [
                                 GestureDetector(
                                   onTap: () {
-
-                                    if(quantity> 1){
+                                    if (quantity > 1) {
                                       setState(() {
                                         quantity--;
                                       });
                                     }
-
                                   },
                                   child: Container(
                                     width: 35,
@@ -271,29 +290,39 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     // Price and Order Button
                     Row(
                       children: [
-                        GestureDetector(
-                          onTap: (){
-                            cartController.addTocart(widget.productModel, quantity);
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 25,
-                              vertical: 15,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Color(0xFFE53E3E),
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Text(
-                              'Add to cart',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                        Obx(() {
+                          if (cartController.isLoading.value) {
+                            return Center(child: CircularProgressIndicator());
+                          } else {
+                            return GestureDetector(
+                              onTap: () {
+                                cartController.addTocart(
+                                  widget.productModel,
+                                  quantity,
+                                );
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 25,
+                                  vertical: 15,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Color(0xFFE53E3E),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Text(
+                                  'Add to cart',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
+                            );
+                          }
+                        }),
+
                         SizedBox(width: 15),
                         Expanded(
                           child: Container(

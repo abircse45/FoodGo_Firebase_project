@@ -7,10 +7,11 @@ import 'package:foodgo/controller/product_controller.dart';
 import 'package:foodgo/models/product_model.dart';
 import 'package:foodgo/view/addproduct_screen.dart';
 import 'package:foodgo/view/createbanner_screen.dart';
+import 'package:foodgo/view/order_screen.dart';
 import 'package:foodgo/view/product_details.dart';
 import 'package:get/get.dart';
-
 import 'cart_screen.dart';
+
 
 class FoodgoHomePage extends StatefulWidget {
   @override
@@ -25,7 +26,7 @@ class _FoodgoHomePageState extends State<FoodgoHomePage> {
     HomePage(),
     SearchPage(),
     AddproductScreen(),
-    FavoritePage(),
+    OrderScreen(),
     CreatebannerScreen(),
   ];
 
@@ -136,7 +137,6 @@ class HomePage extends GetView<ProductController> {
                       ),
                       GestureDetector(
                         onTap: (){
-                          Get.to(CartScreen(),transition: Transition.noTransition);
                         },
                         child: Container(
                           padding: EdgeInsets.all(8),

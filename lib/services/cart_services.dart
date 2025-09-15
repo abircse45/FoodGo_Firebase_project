@@ -8,26 +8,7 @@ class CartServices {
 
   Future<bool?> addTocart(CartModel cartmodel) async {
     try {
-      // QuerySnapshot existingItems = await cartCollection
-      //     .where("productId", isEqualTo: cartmodel.productId)
-      //     .where("userId", isEqualTo: cartmodel.userId)
-      //     .get();
-
-      // if (existingItems.docs.isEmpty) {
-      //   DocumentSnapshot existingDocs = await existingItems.docs.first;
-      //
-      //   CartModel itemdata = CartModel.fromJson(
-      //     existingDocs.data() as Map<String, dynamic>,
-      //   );
-      //
-      //   itemdata.qunatity =
-      //       (itemdata.qunatity ?? 1) + (cartmodel.qunatity ?? 1);
-      //
-      //   await cartCollection.doc(existingDocs.id).update(itemdata.toJson());
-      // // } else {
-      //   cartCollection.add(cartmodel.toJson());
-      // }
-    await  cartCollection.add(cartmodel.toJson());
+      await cartCollection.add(cartmodel.toJson());
       return true;
     } catch (e) {
       print(e.toString());
@@ -35,17 +16,39 @@ class CartServices {
   }
 
   Future<List<CartModel>?> getCart() async {
-    QuerySnapshot querySnapshot = await cartCollection
-        .where(
-          "userId",
-          isEqualTo: FirebaseAuth.instance.currentUser!.uid.toString(),
-        )
+    try {
+      QuerySnapshot snap = await cartCollection
+          .where("userId", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+          .get();
+
+      return snap.docs
+          .map((d) => CartModel.fromJson(d.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print(e.toString());
+      return null;
+    }
+  }
+
+  // Update quantity
+
+  Future<void> updateQuantity(String cartId, int newQuantity) async {
+    await cartCollection.doc(cartId).update({"quantity": newQuantity});
+  }
+
+  // Delete Item cart
+
+  Future deleteItemCart(String cartId) async {
+    await cartCollection.doc(cartId).delete();
+  }
+
+  Future clearCart(String documentId) async {
+    final snapshot = await cartCollection
+        .where("userId", isEqualTo: documentId)
         .get();
 
-    return querySnapshot.docs
-        .map(
-          (value) => CartModel.fromJson(value.data() as Map<String, dynamic>),
-        )
-        .toList();
+    for (var document in snapshot.docs) {
+      await cartCollection.doc(document.id).delete();
+    }
   }
 }
